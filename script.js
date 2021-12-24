@@ -97,13 +97,16 @@ videoElem.addEventListener("playing", () => {
     const resizedDetections = faceapi.resizeResults(detections, displaySize);
     //console.log(resizedDetections);
 
+    let boxes = [];
     for (let i = 0; i < resizedDetections.length; ++i) {
-      const x = resizedDetections[i]._box._x;
-      const y = resizedDetections[i]._box._y;
-      const w = resizedDetections[i]._box._width;
-      const h = resizedDetections[i]._box._height;
-      pixelAveraging(x, y, w, h);
+      boxes.push({
+        fx: resizedDetections[i]._box._x,
+        fy: resizedDetections[i]._box._y,
+        fw: resizedDetections[i]._box._width,
+        fh: resizedDetections[i]._box._height,
+      });
     }
+    pixelAveraging(boxes);
 
     //drawFaceBox(canvas, resizedDetections);
   }, C.TIMER_MILLISECONDS);
@@ -129,26 +132,36 @@ function drawFaceBox(canvas, resizedDetections) {
 //}
 //
 
-function pixelAveraging(fx, fy, fw, fh) {
+function pixelAveraging(boxes) {
   context.drawImage(videoElem, 0, 0, C.VID_W, C.VID_H);
 
-  ////face box
-  //context.strokeStyle = "green";
-  //context.strokeRect(fx, fy, fw, fh);
+  ////face boxes
+  for (let i = 0; i < boxes.length; ++i) {
+    context.strokeStyle = "green";
+    context.strokeRect(boxes[i].fx, boxes[i].fy, boxes[i].fw, boxes[i].fh);
+  }
 
   let frame = context.getImageData(0, 0, C.VID_W, C.VID_H);
 
   for (let i = 0; i < C.VID_W; i += C.SQUARE_SIDE) {
     for (let j = 0; j < C.VID_H; j += C.SQUARE_SIDE) {
-      if (
-        H.withinBox(i, j, fx, fy, fw, fh) ||
-        H.withinBox(i + C.SQUARE_SIDE, j + C.SQUARE_SIDE, fx, fy, fw, fh) ||
-        H.withinBox(i, j + C.SQUARE_SIDE, fx, fy, fw, fh) ||
-        H.withinBox(i + C.SQUARE_SIDE, j, fx, fy, fw, fh)
-      ) {
-        continue;
+      let cont = false;
+      for (let b = 0; b < boxes.length; ++b) {
+        const fx = boxes[b].fx;
+        const fy = boxes[b].fy;
+        const fw = boxes[b].fw;
+        const fh = boxes[b].fh;
+        if (
+          H.withinBox(i, j, fx, fy, fw, fh) ||
+          H.withinBox(i + C.SQUARE_SIDE, j + C.SQUARE_SIDE, fx, fy, fw, fh) ||
+          H.withinBox(i, j + C.SQUARE_SIDE, fx, fy, fw, fh) ||
+          H.withinBox(i + C.SQUARE_SIDE, j, fx, fy, fw, fh)
+        ) {
+          cont = true;
+          break;
+        }
       }
-
+      if (cont === true) continue;
       let ids = [];
       for (let ii = 0; ii < C.SQUARE_SIDE; ++ii) {
         for (let jj = 0; jj < C.SQUARE_SIDE; ++jj) {
