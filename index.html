@@ -7,7 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FaceDetection</title>
     <script src="face-api.min.js"></script>
-    <script src="script.js" defer></script>
+    <script src="constants.js" type="module"></script>
+    <script src="helper.js" type="module"></script>
+    <script src="script.js" defer type="module"></script>
     <style>
         body {
             margin: 0;
@@ -26,7 +28,9 @@
 </head>
 
 <body>
-    <video id="videoElement" width="720" height="560" autoplay muted></video>
+    <!--
+        <video id="videoElement" width="720" height="560" autoplay muted></video>
+    -->
 </body>
 
 </html>
